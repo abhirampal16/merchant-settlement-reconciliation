@@ -1,0 +1,8 @@
+je_id,posting_date,account,entity,debit,credit,currency,memo,created_at
+je_001,2026-05-01,2100,FinCo US,0.00,1300.00,USD,Merchant payable settlement batch - US USD,2026-05-01 18:00:00
+je_002,2026-05-01,2100,FinCo Canada,0.00,725.00,CAD,Merchant payable settlement batch - CA CAD,2026-05-01 18:05:00
+je_003,2026-05-01,2100,FinCo UK,0.00,300.00,GBP,Merchant payable settlement batch - UK GBP,2026-05-01 18:10:00
+je_004,2026-05-02,2100,FinCo US,0.00,300.00,USD,Merchant payable settlement batch - US USD with expected match,2026-05-02 18:00:00
+je_005,2026-05-02,2100,FinCo Canada,0.00,750.00,CAD,Merchant payable settlement batch - CA CAD with variance,2026-05-02 18:05:00
+je_006,2026-05-02,2100,FinCo UK,0.00,150.00,GBP,GL-only merchant payable posting for unmatched investigation,2026-05-02 18:10:00
+je_007,2026-05-01,4000,FinCo US,0.00,999.00,USD,Non-payable revenue account should be excluded,2026-05-01 18:15:00
