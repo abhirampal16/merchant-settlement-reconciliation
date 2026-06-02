@@ -14,6 +14,19 @@ with merchants as (
 -- Logic CTEs
 legal_entity_history as (
 
+    /*
+        Production note:
+        Merchant legal entity should be modeled as an SCD Type 2 history because
+        legal entity assignment can change over time and affects the reconciliation
+        grain. In production, this model would be backed by a dbt snapshot or source
+        history table with valid_from / valid_to ranges. Settlement events would
+        join to this history point-in-time using event_ts so historical accounting
+        evidence remains stable even if the current CRM record changes later.
+
+        This synthetic repo has one current merchant record per merchant, so the
+        model represents the SCD Type 2 shape without generating multiple versions.
+    */
+
     select
         -- Source identity
         merchant_id,
