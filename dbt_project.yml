@@ -1,0 +1,66 @@
+name: merchant_settlement_reconciliation
+version: '1.0.0'
+config-version: 2
+
+profile: merchant_settlement_reconciliation
+
+model-paths: ['models']
+seed-paths: ['seeds']
+macro-paths: ['macros']
+snapshot-paths: ['snapshots']
+analysis-paths: ['analyses']
+test-paths: ['tests']
+
+target-path: 'target'
+clean-targets:
+  - 'target'
+  - 'dbt_packages'
+
+models:
+  merchant_settlement_reconciliation:
+    +materialized: view
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: view
+      +schema: intermediate
+    subledger:
+      +materialized: table
+      +schema: subledger
+
+seeds:
+  merchant_settlement_reconciliation:
+    +quote_columns: false
+    settlement_events:
+      +column_types:
+        event_id: varchar
+        settlement_id: varchar
+        merchant_id: varchar
+        event_type: varchar
+        event_ts: timestamp
+        gross_amount: numeric
+        fee_amount: numeric
+        net_amount: numeric
+        currency: varchar
+        status: varchar
+        source_updated_at: timestamp
+    journal_entries:
+      +column_types:
+        je_id: varchar
+        posting_date: date
+        account: integer
+        entity: varchar
+        debit: numeric
+        credit: numeric
+        currency: varchar
+        memo: varchar
+        created_at: timestamp
+    merchants:
+      +column_types:
+        merchant_id: varchar
+        merchant_name: varchar
+        legal_entity: varchar
+        country: varchar
+        onboarded_at: timestamp
+        updated_at: timestamp
