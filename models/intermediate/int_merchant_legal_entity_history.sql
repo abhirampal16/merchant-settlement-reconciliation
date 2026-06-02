@@ -23,7 +23,7 @@ legal_entity_history as (
         join to this history point-in-time using event_ts so historical accounting
         evidence remains stable even if the current CRM record changes later.
 
-        This synthetic repo has one current merchant record per merchant, so the
+        This sample repo has one current merchant record per merchant, so the
         model represents the SCD Type 2 shape without generating multiple versions.
     */
 
