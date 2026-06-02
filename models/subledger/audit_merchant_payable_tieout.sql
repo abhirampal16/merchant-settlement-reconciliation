@@ -149,10 +149,25 @@ triage_context as (
 
 ),
 
+stable_audit_lineage as (
+
+    select
+        *,
+        case
+            when latest_settlement_source_updated_at is null then latest_gl_created_at
+            when latest_gl_created_at is null then latest_settlement_source_updated_at
+            when latest_settlement_source_updated_at >= latest_gl_created_at
+                then latest_settlement_source_updated_at
+            else latest_gl_created_at
+        end as latest_source_activity_at
+    from triage_context
+
+),
+
 with_audit_fields as (
 
     select
-        {{ dbt_utils.generate_surrogate_key([
+        {{ generate_evidence_hash([
             'posting_date',
             'legal_entity',
             'currency'
@@ -186,7 +201,7 @@ with_audit_fields as (
         investigation_priority,
         deterministic_root_cause_hint,
 
-        {{ dbt_utils.generate_surrogate_key([
+        {{ generate_evidence_hash([
             'posting_date',
             'legal_entity',
             'currency',
@@ -202,11 +217,19 @@ with_audit_fields as (
             'deterministic_root_cause_hint'
         ]) }} as evidence_hash,
 
-        current_timestamp as dbt_loaded_at,
-        '{{ invocation_id }}' as dbt_invocation_id,
+        latest_source_activity_at as dbt_loaded_at,
+        {{ generate_evidence_hash([
+            'posting_date',
+            'legal_entity',
+            'currency',
+            'latest_settlement_source_updated_at',
+            'latest_gl_created_at',
+            'settlement_event_count',
+            'gl_entry_count'
+        ]) }} as dbt_invocation_id,
         'PROVISIONAL' as certification_status
 
-    from triage_context
+    from stable_audit_lineage
 
 ),
 

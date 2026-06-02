@@ -40,14 +40,10 @@ settlement_events_with_legal_entity as (
         final_settlement_events.gross_amount,
         final_settlement_events.fee_amount,
         final_settlement_events.net_amount,
-        case
-            when final_settlement_events.event_type = 'SETTLED'
-                then final_settlement_events.net_amount
-            when final_settlement_events.event_type in ('REVERSED', 'CHARGEBACK')
-                then -1 * abs(final_settlement_events.net_amount)
-            when final_settlement_events.event_type = 'ADJUSTED'
-                then final_settlement_events.net_amount
-        end as signed_net_amount,
+        {{ settlement_sign_logic(
+            'final_settlement_events.event_type',
+            'final_settlement_events.net_amount'
+        ) }} as signed_net_amount,
         final_settlement_events.currency,
         final_settlement_events.status,
         final_settlement_events.source_updated_at,

@@ -32,21 +32,41 @@ standardized as (
 
         -- Source lineage
         cast(source_updated_at as timestamp) as source_updated_at,
-        current_timestamp as dbt_loaded_at,
-        '{{ invocation_id }}' as dbt_invocation_id,
+        cast(source_updated_at as timestamp) as dbt_loaded_at,
         'payments_db.settlement_events' as source_relation
 
     from settlement_events
 
 ),
 
+with_deterministic_lineage as (
+
+    select
+        *,
+        {{ generate_evidence_hash([
+            'event_id',
+            'settlement_id',
+            'merchant_id',
+            'event_type',
+            'event_ts',
+            'gross_amount',
+            'fee_amount',
+            'net_amount',
+            'currency',
+            'status',
+            'source_updated_at'
+        ]) }} as dbt_invocation_id
+    from standardized
+
+),
+
 deduplicated as (
 
     select *
-    from standardized
+    from with_deterministic_lineage
     qualify row_number() over (
         partition by event_id
-        order by source_updated_at desc
+        order by source_updated_at desc, settlement_id, merchant_id, event_ts desc
     ) = 1
 
 ),

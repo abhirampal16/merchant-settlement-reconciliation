@@ -26,11 +26,37 @@ standardized as (
 
         -- Source lineage
         cast(updated_at as timestamp) as updated_at,
-        current_timestamp as dbt_loaded_at,
-        '{{ invocation_id }}' as dbt_invocation_id,
+        cast(updated_at as timestamp) as dbt_loaded_at,
         'crm.merchants' as source_relation
 
     from merchants
+
+),
+
+with_deterministic_lineage as (
+
+    select
+        *,
+        {{ generate_evidence_hash([
+            'merchant_id',
+            'merchant_name',
+            'legal_entity',
+            'country',
+            'onboarded_at',
+            'updated_at'
+        ]) }} as dbt_invocation_id
+    from standardized
+
+),
+
+deduplicated as (
+
+    select *
+    from with_deterministic_lineage
+    qualify row_number() over (
+        partition by merchant_id
+        order by updated_at desc, legal_entity, merchant_name, country
+    ) = 1
 
 ),
 
@@ -38,7 +64,7 @@ standardized as (
 final as (
 
     select *
-    from standardized
+    from deduplicated
 
 )
 

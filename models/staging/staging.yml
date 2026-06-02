@@ -189,9 +189,9 @@ models:
         tests:
           - not_null
       - name: dbt_loaded_at
-        description: Timestamp when dbt evaluated the staging model. Used for lineage context, not deterministic business logic.
+        description: Deterministic source watermark timestamp for the staged event. Uses source_updated_at so reruns over unchanged source data are idempotent.
       - name: dbt_invocation_id
-        description: dbt invocation identifier for run-level lineage. Excluded from keys and evidence hashes to preserve idempotency.
+        description: Deterministic source-row fingerprint retained in the legacy invocation lineage field so unchanged source rows remain stable across reruns.
       - name: source_relation
         description: Human-readable source relation represented by this synthetic seed-backed staging model.
         tests:

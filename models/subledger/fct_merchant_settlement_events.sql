@@ -16,7 +16,7 @@ canonical_settlement_events as (
 
     select
         -- Canonical fact identity
-        {{ dbt_utils.generate_surrogate_key(['event_id']) }} as settlement_event_key,
+        {{ generate_evidence_hash(['event_id']) }} as settlement_event_key,
         event_id,
         settlement_id,
 
@@ -41,7 +41,7 @@ canonical_settlement_events as (
         dbt_loaded_at,
         dbt_invocation_id,
 
-        {{ dbt_utils.generate_surrogate_key([
+        {{ generate_evidence_hash([
             'event_id',
             'settlement_id',
             'merchant_id',

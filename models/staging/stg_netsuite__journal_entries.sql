@@ -29,11 +29,40 @@ standardized as (
 
         -- Source lineage
         cast(created_at as timestamp) as created_at,
-        current_timestamp as dbt_loaded_at,
-        '{{ invocation_id }}' as dbt_invocation_id,
+        cast(created_at as timestamp) as dbt_loaded_at,
         'netsuite.journal_entries' as source_relation
 
     from journal_entries
+
+),
+
+with_deterministic_lineage as (
+
+    select
+        *,
+        {{ generate_evidence_hash([
+            'je_id',
+            'posting_date',
+            'account',
+            'legal_entity',
+            'debit_amount',
+            'credit_amount',
+            'currency',
+            'memo',
+            'created_at'
+        ]) }} as dbt_invocation_id
+    from standardized
+
+),
+
+deduplicated as (
+
+    select *
+    from with_deterministic_lineage
+    qualify row_number() over (
+        partition by je_id
+        order by created_at desc, posting_date desc, account, legal_entity, currency
+    ) = 1
 
 ),
 
@@ -41,7 +70,7 @@ standardized as (
 final as (
 
     select *
-    from standardized
+    from deduplicated
 
 )
 

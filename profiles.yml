@@ -1,0 +1,8 @@
+merchant_settlement_reconciliation:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: merchant_settlement_reconciliation.duckdb
+      schema: main
+      threads: 1

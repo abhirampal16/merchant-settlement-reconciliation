@@ -63,12 +63,11 @@ models:
       evidence_retention: 7_years
       ai_assisted_reconciliation_ready: true
     tests:
-      - dbt_utils.unique_combination_of_columns:
-          arguments:
-            combination_of_columns:
-              - posting_date
-              - legal_entity
-              - currency
+      - unique_combination_of_columns:
+          combination_of_columns:
+            - posting_date
+            - legal_entity
+            - currency
       - valid_reconciliation_status
     columns:
       - name: tieout_key
@@ -109,8 +108,7 @@ models:
         tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: ['NO_VARIANCE', 'SETTLEMENT_GREATER_THAN_GL', 'GL_GREATER_THAN_SETTLEMENT']
+              values: ['NO_VARIANCE', 'SETTLEMENT_GREATER_THAN_GL', 'GL_GREATER_THAN_SETTLEMENT']
       - name: variance_pct_of_gl
         description: Absolute variance divided by absolute GL net amount. Null when GL net is zero.
       - name: variance_status
@@ -118,15 +116,13 @@ models:
         tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: ['PASS', 'FAIL']
+              values: ['PASS', 'FAIL']
       - name: reconciliation_status
         description: "Match classification: MATCHED, AMOUNT_VARIANCE, GL_ONLY, or SETTLEMENT_ONLY."
         tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: ['MATCHED', 'AMOUNT_VARIANCE', 'GL_ONLY', 'SETTLEMENT_ONLY']
+              values: ['MATCHED', 'AMOUNT_VARIANCE', 'GL_ONLY', 'SETTLEMENT_ONLY']
       - name: has_settlement_activity
         description: Boolean flag showing whether settlement activity exists for the tie-out grain.
         tests:
@@ -164,8 +160,7 @@ models:
         tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: ['LOW', 'MEDIUM', 'HIGH']
+              values: ['LOW', 'MEDIUM', 'HIGH']
       - name: deterministic_root_cause_hint
         description: Deterministic explanation used as context for human or AI-assisted variance triage.
         tests:
@@ -175,11 +170,11 @@ models:
         tests:
           - not_null
       - name: dbt_loaded_at
-        description: Timestamp when dbt created the reconciliation row.
+        description: Deterministic source watermark for the reconciliation row, derived from the latest source activity included in the tie-out grain.
         tests:
           - not_null
       - name: dbt_invocation_id
-        description: dbt invocation ID tying the row to a specific dbt execution for audit lineage.
+        description: Deterministic tie-out source fingerprint retained in the legacy invocation lineage field so unchanged reconciliation rows remain stable across reruns.
         tests:
           - not_null
       - name: certification_status
@@ -187,5 +182,4 @@ models:
         tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: ['PROVISIONAL', 'FINAL']
+              values: ['PROVISIONAL', 'FINAL']

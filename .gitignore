@@ -3,6 +3,7 @@ target/
 dbt_packages/
 logs/
 package-lock.yml
+.user.yml
 
 # local DuckDB database
 *.duckdb
