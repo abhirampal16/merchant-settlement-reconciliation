@@ -3,13 +3,15 @@
     tags=['staging', 'payments', 'settlement_reconciliation']
 ) }}
 
-with source as (
+-- Import CTEs
+with settlement_events as (
 
     select *
     from {{ ref('settlement_events') }}
 
 ),
 
+-- Logic CTEs
 standardized as (
 
     select
@@ -34,7 +36,7 @@ standardized as (
         '{{ invocation_id }}' as dbt_invocation_id,
         'payments_db.settlement_events' as source_relation
 
-    from source
+    from settlement_events
 
 ),
 
@@ -44,10 +46,18 @@ deduplicated as (
     from standardized
     qualify row_number() over (
         partition by event_id
-        order by source_updated_at desc, dbt_loaded_at desc
+        order by source_updated_at desc
     ) = 1
+
+),
+
+-- Final CTE
+final as (
+
+    select *
+    from deduplicated
 
 )
 
 select *
-from deduplicated
+from final
