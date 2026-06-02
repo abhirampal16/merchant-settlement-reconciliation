@@ -1,0 +1,6 @@
+merchant_id,merchant_name,legal_entity,country,onboarded_at,updated_at
+m_001,Northstar Bikes,FinCo US,US,2025-01-10 09:00:00,2026-04-30 12:00:00
+m_002,Lakeside Apparel,FinCo US,US,2025-02-14 10:30:00,2026-04-30 12:00:00
+m_003,Maple Coffee,FinCo Canada,CA,2025-03-20 08:15:00,2026-04-30 12:00:00
+m_004,Pacific Books,FinCo Canada,CA,2025-04-05 11:45:00,2026-04-30 12:00:00
+m_005,London Market,FinCo UK,GB,2025-05-01 13:00:00,2026-04-30 12:00:00
