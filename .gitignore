@@ -1,0 +1,13 @@
+# dbt artifacts
+target/
+dbt_packages/
+logs/
+package-lock.yml
+
+# local DuckDB database
+*.duckdb
+*.duckdb.wal
+
+# OS / editor files
+.DS_Store
+.vscode/
