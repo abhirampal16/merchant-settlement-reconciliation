@@ -1,0 +1,191 @@
+version: 2
+
+models:
+  - name: fct_merchant_settlement_events
+    description: >
+      Canonical event-level merchant settlement subledger fact. Grain is one row per
+      accounting-relevant settlement event.
+    meta:
+      owner: finance_data_platform
+      certification_level: subledger_foundation
+      slo: daily_by_08_00_local_time
+    columns:
+      - name: settlement_event_key
+        description: Deterministic surrogate key generated from event_id.
+        tests:
+          - not_null
+          - unique
+      - name: event_id
+        description: Stable source settlement event identifier.
+        tests:
+          - not_null
+          - unique
+      - name: settlement_id
+        description: Source settlement identifier.
+        tests:
+          - not_null
+      - name: merchant_id
+        description: Source merchant identifier.
+        tests:
+          - not_null
+      - name: legal_entity
+        description: Legal entity resolved for the settlement event.
+        tests:
+          - not_null
+      - name: accounting_date
+        description: Accounting date used to tie settlement activity to GL posting date.
+        tests:
+          - not_null
+      - name: currency
+        description: Settlement currency.
+        tests:
+          - not_null
+      - name: signed_net_amount
+        description: Accounting-signed net settlement amount.
+        tests:
+          - not_null
+      - name: record_hash
+        description: Deterministic hash of the canonical event attributes for audit and change detection.
+        tests:
+          - not_null
+
+  - name: audit_merchant_payable_tieout
+    description: >
+      Daily Merchant Payable reconciliation between canonical signed settlement events
+      and NetSuite GL account 2100. Grain is one row per posting_date, legal_entity,
+      and currency. Business variances are surfaced as exception rows rather than
+      treated as pipeline failures.
+    meta:
+      owner: finance_data_platform
+      certification_level: SOX_evidence_candidate
+      slo: daily_by_08_00_local_time
+      materiality_threshold: 0.00
+      evidence_retention: 7_years
+      ai_assisted_reconciliation_ready: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - posting_date
+              - legal_entity
+              - currency
+      - valid_reconciliation_status
+    columns:
+      - name: tieout_key
+        description: Deterministic key for posting_date, legal_entity, and currency.
+        tests:
+          - not_null
+          - unique
+      - name: posting_date
+        description: GL posting date and settlement accounting date used for reconciliation.
+        tests:
+          - not_null
+      - name: legal_entity
+        description: Legal entity reconciliation dimension.
+        tests:
+          - not_null
+      - name: currency
+        description: Currency reconciliation dimension.
+        tests:
+          - not_null
+      - name: settlement_net
+        description: Sum of signed settlement net amounts at the tie-out grain.
+        tests:
+          - not_null
+      - name: gl_net
+        description: Sum of normalized NetSuite Merchant Payable account 2100 postings at the tie-out grain.
+        tests:
+          - not_null
+      - name: variance
+        description: Difference between settlement_net and gl_net.
+        tests:
+          - not_null
+      - name: absolute_variance
+        description: Absolute value of the settlement-to-GL variance.
+        tests:
+          - not_null
+      - name: variance_direction
+        description: Directional classification of the variance.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['NO_VARIANCE', 'SETTLEMENT_GREATER_THAN_GL', 'GL_GREATER_THAN_SETTLEMENT']
+      - name: variance_pct_of_gl
+        description: Absolute variance divided by absolute GL net amount. Null when GL net is zero.
+      - name: variance_status
+        description: PASS when variance is zero, otherwise FAIL.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['PASS', 'FAIL']
+      - name: reconciliation_status
+        description: "Match classification: MATCHED, AMOUNT_VARIANCE, GL_ONLY, or SETTLEMENT_ONLY."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['MATCHED', 'AMOUNT_VARIANCE', 'GL_ONLY', 'SETTLEMENT_ONLY']
+      - name: has_settlement_activity
+        description: Boolean flag showing whether settlement activity exists for the tie-out grain.
+        tests:
+          - not_null
+      - name: has_gl_activity
+        description: Boolean flag showing whether GL activity exists for the tie-out grain.
+        tests:
+          - not_null
+      - name: settlement_event_count
+        description: Number of settlement events included in the settlement-side aggregate.
+        tests:
+          - not_null
+      - name: gl_entry_count
+        description: Number of GL entries included in the GL-side aggregate.
+        tests:
+          - not_null
+      - name: settlement_min_event_ts
+        description: Earliest settlement event timestamp included in the tie-out row.
+      - name: settlement_max_event_ts
+        description: Latest settlement event timestamp included in the tie-out row.
+      - name: gl_min_created_at
+        description: Earliest GL created timestamp included in the tie-out row.
+      - name: gl_max_created_at
+        description: Latest GL created timestamp included in the tie-out row.
+      - name: latest_settlement_source_updated_at
+        description: Latest settlement source update timestamp included in the tie-out row.
+      - name: latest_gl_created_at
+        description: Latest GL created timestamp included in the tie-out row.
+      - name: needs_investigation
+        description: Boolean flag indicating whether the row requires Finance or Accounting review.
+        tests:
+          - not_null
+      - name: investigation_priority
+        description: Deterministic priority hint for reconciliation triage.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['LOW', 'MEDIUM', 'HIGH']
+      - name: deterministic_root_cause_hint
+        description: Deterministic explanation used as context for human or AI-assisted variance triage.
+        tests:
+          - not_null
+      - name: evidence_hash
+        description: Deterministic hash of reconciliation business values. Excludes dbt_invocation_id and dbt_loaded_at to preserve rerun comparability.
+        tests:
+          - not_null
+      - name: dbt_loaded_at
+        description: Timestamp when dbt created the reconciliation row.
+        tests:
+          - not_null
+      - name: dbt_invocation_id
+        description: dbt invocation ID tying the row to a specific dbt execution for audit lineage.
+        tests:
+          - not_null
+      - name: certification_status
+        description: PROVISIONAL for open periods; FINAL after accounting certification.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['PROVISIONAL', 'FINAL']
