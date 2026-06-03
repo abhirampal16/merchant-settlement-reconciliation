@@ -16,6 +16,11 @@ clean-targets:
   - 'target'
   - 'dbt_packages'
 
+on-run-end:
+  - "create schema if not exists {{ target.schema }}_subledger"
+  - "{{ create_audit_merchant_payable_run_log_table() }}"
+  - "{{ insert_audit_merchant_payable_run_log(results) }}"
+
 models:
   merchant_settlement_reconciliation:
     +materialized: view
