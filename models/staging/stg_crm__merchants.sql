@@ -22,11 +22,14 @@ standardized as (
         cast(merchant_name as varchar) as merchant_name,
         cast(legal_entity as varchar) as legal_entity,
         upper(cast(country as varchar)) as country,
+        cast(onboarded_at as timestamp) as onboarded_at_utc,
         cast(onboarded_at as timestamp) as onboarded_at,
 
         -- Source lineage
+        cast(updated_at as timestamp) as updated_at_utc,
         cast(updated_at as timestamp) as updated_at,
         cast(updated_at as timestamp) as dbt_loaded_at,
+        'UTC' as source_timezone,
         'crm.merchants' as source_relation
 
     from merchants
@@ -42,8 +45,8 @@ with_deterministic_lineage as (
             'merchant_name',
             'legal_entity',
             'country',
-            'onboarded_at',
-            'updated_at'
+            'onboarded_at_utc',
+            'updated_at_utc'
         ]) }} as dbt_invocation_id
     from standardized
 

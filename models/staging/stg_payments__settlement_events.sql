@@ -22,8 +22,9 @@ standardized as (
 
         -- Settlement event attributes
         upper(cast(event_type as varchar)) as event_type,
+        cast(event_ts as timestamp) as event_ts_utc,
         cast(event_ts as timestamp) as event_ts,
-        cast(event_ts as date) as event_date,
+        cast(cast(event_ts as timestamp) as date) as event_date,
         cast(gross_amount as numeric(18, 2)) as gross_amount,
         cast(fee_amount as numeric(18, 2)) as fee_amount,
         cast(net_amount as numeric(18, 2)) as net_amount,
@@ -31,8 +32,10 @@ standardized as (
         upper(cast(status as varchar)) as status,
 
         -- Source lineage
+        cast(source_updated_at as timestamp) as source_updated_at_utc,
         cast(source_updated_at as timestamp) as source_updated_at,
         cast(source_updated_at as timestamp) as dbt_loaded_at,
+        'UTC' as source_timezone,
         'payments_db.settlement_events' as source_relation
 
     from settlement_events
@@ -48,13 +51,13 @@ with_deterministic_lineage as (
             'settlement_id',
             'merchant_id',
             'event_type',
-            'event_ts',
+            'event_ts_utc',
             'gross_amount',
             'fee_amount',
             'net_amount',
             'currency',
             'status',
-            'source_updated_at'
+            'source_updated_at_utc'
         ]) }} as dbt_invocation_id
     from standardized
 

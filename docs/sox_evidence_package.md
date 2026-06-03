@@ -1,0 +1,23 @@
+# SOX Evidence Package
+
+## Control
+Daily Merchant Payable reconciliation: finalized settlement activity must tie to NetSuite account 2100 by `posting_date`, `legal_entity`, and `currency`.
+
+## Ownership
+- Owner: Finance Data Platform
+- Frequency: Daily by 08:00 local close calendar
+- Materiality threshold: 0.00 for this assessment
+- Escalation: Finance Ops investigates; Accounting owns certification
+
+## Artifact
+Per run, produce `audit_merchant_payable_tieout` rows with:
+
+`posting_date`, `legal_entity`, `currency`, `settlement_net`, `gl_net`, `variance`, `variance_status`, `reconciliation_status`, `needs_investigation`, `investigation_priority`, `deterministic_root_cause_hint`, `evidence_hash`, `dbt_loaded_at`, `dbt_invocation_id`, `certification_status`.
+
+The local proof stores captured run output under `evidence/`; production stores certified extracts and dbt artifacts in immutable audit storage.
+
+## Replay Guarantee
+Evidence hashes exclude volatile runtime values. Re-running unchanged inputs should reproduce the same row count and output fingerprint.
+
+## Failure Response
+Rows with `GL_ONLY`, `SETTLEMENT_ONLY`, or `AMOUNT_VARIANCE` remain in the evidence table, are prioritized for review, and require documented resolution before final period certification.

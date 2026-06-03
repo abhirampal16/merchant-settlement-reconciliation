@@ -28,8 +28,10 @@ standardized as (
         cast(memo as varchar) as memo,
 
         -- Source lineage
+        cast(created_at as timestamp) as created_at_utc,
         cast(created_at as timestamp) as created_at,
         cast(created_at as timestamp) as dbt_loaded_at,
+        'UTC' as source_timezone,
         'netsuite.journal_entries' as source_relation
 
     from journal_entries
@@ -49,7 +51,7 @@ with_deterministic_lineage as (
             'credit_amount',
             'currency',
             'memo',
-            'created_at'
+            'created_at_utc'
         ]) }} as dbt_invocation_id
     from standardized
 

@@ -132,8 +132,9 @@ models:
   - name: stg_payments__settlement_events
     description: >
       Staging model for settlement events. Standardizes data types, normalizes
-      casing, preserves source lineage, and deduplicates CDC-style source records
-      by event_id using the latest source_updated_at.
+      casing, treats source timestamps as UTC, preserves source lineage, and
+      deduplicates CDC-style source records by event_id using the latest
+      source_updated_at.
     columns:
       - name: event_id
         description: Stable source identifier for the settlement event.
@@ -155,11 +156,15 @@ models:
           - accepted_values:
               values: ['SETTLED', 'REVERSED', 'ADJUSTED', 'CHARGEBACK']
       - name: event_ts
-        description: Source event timestamp.
+        description: Source event timestamp normalized under the UTC convention.
+        tests:
+          - not_null
+      - name: event_ts_utc
+        description: Explicit UTC settlement event timestamp used for idempotency and accounting-date derivation.
         tests:
           - not_null
       - name: event_date
-        description: Date derived from event_ts for simple sample-project accounting date handling.
+        description: Date derived from event_ts_utc for simple sample-project accounting date handling.
         tests:
           - not_null
       - name: gross_amount
@@ -185,13 +190,101 @@ models:
           - accepted_values:
               values: ['PENDING', 'FINAL']
       - name: source_updated_at
-        description: Source update timestamp used for CDC-style deduplication and late-arriving record handling.
+        description: Source update timestamp normalized under the UTC convention.
+        tests:
+          - not_null
+      - name: source_updated_at_utc
+        description: Explicit UTC source update timestamp used for CDC deduplication, late-arriving handling, and stable lineage.
         tests:
           - not_null
       - name: dbt_loaded_at
-        description: Deterministic source watermark timestamp for the staged event. Uses source_updated_at so reruns over unchanged source data are idempotent.
+        description: Deterministic UTC source watermark timestamp for the staged event. Uses source_updated_at_utc so reruns over unchanged source data are idempotent.
       - name: dbt_invocation_id
         description: Deterministic source-row fingerprint retained in the legacy invocation lineage field so unchanged source rows remain stable across reruns.
+      - name: source_timezone
+        description: Source timestamp interpretation used by the staging layer.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['UTC']
+      - name: source_relation
+        description: Human-readable source relation represented by this synthetic seed-backed staging model.
+        tests:
+          - not_null
+
+  - name: stg_netsuite__journal_entries
+    description: >
+      Staging model for NetSuite journal entries. Standardizes GL fields,
+      normalizes source timestamps under the UTC convention, and deduplicates
+      source rows by je_id using the latest created_at.
+    columns:
+      - name: je_id
+        description: Stable source identifier for the journal entry line.
+        tests:
+          - not_null
+          - unique
+      - name: posting_date
+        description: GL accounting date used for the reconciliation tie-out grain.
+        tests:
+          - not_null
+      - name: account
+        description: NetSuite GL account. Merchant Payable is account 2100.
+        tests:
+          - not_null
+      - name: legal_entity
+        description: Standardized legal entity from the NetSuite entity field.
+        tests:
+          - not_null
+      - name: currency
+        description: Standardized GL currency.
+        tests:
+          - not_null
+      - name: created_at_utc
+        description: Explicit UTC source creation timestamp used for lineage and idempotency.
+        tests:
+          - not_null
+      - name: source_timezone
+        description: Source timestamp interpretation used by the staging layer.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['UTC']
+      - name: source_relation
+        description: Human-readable source relation represented by this synthetic seed-backed staging model.
+        tests:
+          - not_null
+
+  - name: stg_crm__merchants
+    description: >
+      Staging model for merchant reference data. Standardizes merchant attributes,
+      normalizes source timestamps under the UTC convention, and deduplicates
+      source rows by merchant_id using the latest updated_at.
+    columns:
+      - name: merchant_id
+        description: Stable source merchant identifier.
+        tests:
+          - not_null
+          - unique
+      - name: legal_entity
+        description: Legal entity that owns the merchant settlement activity.
+        tests:
+          - not_null
+      - name: country
+        description: Standardized merchant country.
+        tests:
+          - not_null
+      - name: onboarded_at_utc
+        description: Explicit UTC merchant onboarding timestamp.
+      - name: updated_at_utc
+        description: Explicit UTC source update timestamp used for lineage and idempotency.
+        tests:
+          - not_null
+      - name: source_timezone
+        description: Source timestamp interpretation used by the staging layer.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['UTC']
       - name: source_relation
         description: Human-readable source relation represented by this synthetic seed-backed staging model.
         tests:

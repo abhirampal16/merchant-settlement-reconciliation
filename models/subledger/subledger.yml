@@ -54,7 +54,9 @@ models:
       Daily Merchant Payable reconciliation between canonical signed settlement events
       and NetSuite GL account 2100. Grain is one row per posting_date, legal_entity,
       and currency. Business variances are surfaced as exception rows rather than
-      treated as pipeline failures.
+      treated as pipeline failures. Production shape is an incremental Snowflake
+      merge keyed by tieout_key with pruning on posting_date, legal_entity, and
+      currency; the local take-home uses a DuckDB table for reproducibility.
     meta:
       owner: finance_data_platform
       certification_level: SOX_evidence_candidate
@@ -166,7 +168,7 @@ models:
         tests:
           - not_null
       - name: evidence_hash
-        description: Deterministic hash of reconciliation business values. Excludes dbt_invocation_id and dbt_loaded_at to preserve rerun comparability.
+        description: Deterministic hash of reconciliation business values. Excludes dbt_invocation_id and dbt_loaded_at so unchanged business results produce the same hash across reruns.
         tests:
           - not_null
       - name: dbt_loaded_at

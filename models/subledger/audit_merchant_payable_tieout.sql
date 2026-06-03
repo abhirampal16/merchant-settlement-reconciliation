@@ -3,11 +3,25 @@
     tags=['subledger', 'audit', 'merchant_payable_reconciliation']
 ) }}
 
+/*
+    Production Snowflake shape:
+    - materialized = incremental, incremental_strategy = merge
+    - unique_key = tieout_key
+    - cluster_by = ['posting_date', 'legal_entity', 'currency']
+    - reprocess a rolling 16-day window to cover the 14-day late-arriving source window
+
+    This take-home keeps the model as a table so DuckDB runs are deterministic and
+    reviewer-friendly without Snowflake credentials.
+*/
+
 -- Import CTEs
 with settlement_events as (
 
     select *
     from {{ ref('fct_merchant_settlement_events') }}
+
+    -- Production incremental filter:
+    -- where accounting_date >= dateadd(day, -16, current_date)
 
 ),
 
@@ -15,6 +29,9 @@ gl_entries as (
 
     select *
     from {{ ref('int_gl_merchant_payable_entries') }}
+
+    -- Production incremental filter:
+    -- where posting_date >= dateadd(day, -16, current_date)
 
 ),
 
@@ -201,6 +218,8 @@ with_audit_fields as (
         investigation_priority,
         deterministic_root_cause_hint,
 
+        -- Stable evidence hash: excludes run timestamps and invocation metadata so
+        -- unchanged business results compare equal across reruns.
         {{ generate_evidence_hash([
             'posting_date',
             'legal_entity',
