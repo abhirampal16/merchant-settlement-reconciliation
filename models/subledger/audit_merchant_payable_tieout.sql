@@ -9,9 +9,6 @@
     - unique_key = tieout_key
     - cluster_by = ['posting_date', 'legal_entity', 'currency']
     - reprocess a rolling 16-day window to cover the 14-day late-arriving source window
-
-    This take-home keeps the model as a table so DuckDB runs are deterministic and
-    reviewer-friendly without Snowflake credentials.
 */
 
 -- Import CTEs
