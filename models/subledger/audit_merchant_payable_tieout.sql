@@ -1,14 +1,18 @@
 {{ config(
-    materialized='table',
+    materialized='incremental',
+    incremental_strategy='merge',
+    unique_key='tieout_key',
+    cluster_by=['posting_date', 'legal_entity', 'currency'],
     tags=['subledger', 'audit', 'merchant_payable_reconciliation']
 ) }}
 
 /*
-    Production Snowflake shape:
-    - materialized = incremental, incremental_strategy = merge
-    - unique_key = tieout_key
-    - cluster_by = ['posting_date', 'legal_entity', 'currency']
-    - reprocess a rolling 16-day window to cover the 14-day late-arriving source window
+    Incremental strategy:
+    - Merge on tieout_key (deterministic hash of posting_date|legal_entity|currency)
+    - Cluster on reconciliation grain for query pruning
+    - 16-day lookback on accounting_date covers 14-day late-arriving source window
+    - Reads from fct_merchant_settlement_events which is itself incremental,
+      so this only reprocesses the slice of data that actually changed upstream
 */
 
 -- Import CTEs
@@ -17,8 +21,9 @@ with settlement_events as (
     select *
     from {{ ref('fct_merchant_settlement_events') }}
 
-    -- Production incremental filter:
-    -- where accounting_date >= dateadd(day, -16, current_date)
+    {% if is_incremental() %}
+    where accounting_date >= dateadd(day, -16, current_date)
+    {% endif %}
 
 ),
 
@@ -27,8 +32,9 @@ gl_entries as (
     select *
     from {{ ref('int_gl_merchant_payable_entries') }}
 
-    -- Production incremental filter:
-    -- where posting_date >= dateadd(day, -16, current_date)
+    {% if is_incremental() %}
+    where posting_date >= dateadd(day, -16, current_date)
+    {% endif %}
 
 ),
 

@@ -12,3 +12,4 @@ package-lock.yml
 # OS / editor files
 .DS_Store
 .vscode/
+dbt_internal_packages/

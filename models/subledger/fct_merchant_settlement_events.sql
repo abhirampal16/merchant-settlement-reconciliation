@@ -1,13 +1,33 @@
 {{ config(
-    materialized='table',
+    materialized='incremental',
+    incremental_strategy='merge',
+    unique_key='settlement_event_key',
+    cluster_by=['accounting_date'],
     tags=['subledger', 'fact', 'settlement_reconciliation']
 ) }}
+
+/*
+    Incremental strategy:
+    - Merge on settlement_event_key (deterministic hash of event_id)
+    - Cluster on accounting_date for downstream tieout partition pruning
+    - 16-day lookback on source_updated_at captures late-arriving events
+      and CDC replays without rescanning the full history
+    - source_updated_at is the arrival watermark (when we learned about
+      the event), not accounting_date (when it economically occurred)
+*/
 
 -- Import CTEs
 with settlement_events_signed as (
 
     select *
     from {{ ref('int_settlement_events_signed') }}
+
+    {% if is_incremental() %}
+    where source_updated_at >= (
+        select dateadd(day, -16, max(source_updated_at))
+        from {{ this }}
+    )
+    {% endif %}
 
 ),
 
