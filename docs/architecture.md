@@ -20,9 +20,9 @@ Streaming can still power operational alerts, but it should not be the system of
 | Source systems | `payments_db.settlement_events`, `netsuite.journal_entries`, `crm.merchants` | Settlement events, GL postings, merchant reference data |
 | Raw landing | CDC / connector-managed Snowflake tables | Preserve source history and support replay |
 | dbt staging | `stg_*` models | Standardize types, casing, source timestamps, and dedupe latest source versions |
-| dbt intermediate | `int_settlement_events_signed`, `int_gl_merchant_payable_entries` | Apply sign logic, account 2100 filtering, debit/credit normalization |
-| Canonical fact | `fct_merchant_settlement_events` | One row per accounting-relevant settlement event |
-| Tie-out | `audit_merchant_payable_tieout` | One row per `posting_date`, `legal_entity`, `currency` |
+| dbt intermediate | `int_mt_settlement_events_signed`, `int_ns_merchant_payable_entries` | Apply sign logic, account 2100 filtering, debit/credit normalization |
+| Canonical fact | `fct_mt_settlement_events` | One row per accounting-relevant settlement event |
+| Tie-out | `fct_mt_merchant_payable_tieout` | One row per `posting_date`, `legal_entity`, `currency` |
 | Evidence | Certified audit storage | Retain run artifacts, hashes, and replay metadata |
 
 The local repo uses DuckDB and seed-backed sources as a reproducible proof harness for this production shape.

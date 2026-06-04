@@ -20,7 +20,7 @@
 with settlement_events_signed as (
 
     select *
-    from {{ ref('int_settlement_events_signed') }}
+    from {{ ref('int_mt_settlement_events_signed') }}
 
     {% if is_incremental() %}
     where source_updated_at >= (

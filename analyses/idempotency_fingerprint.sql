@@ -13,4 +13,4 @@ select
             order by posting_date, legal_entity, currency
         )
     ) as output_fingerprint
-from {{ ref('audit_merchant_payable_tieout') }}
+from {{ ref('fct_mt_merchant_payable_tieout') }}

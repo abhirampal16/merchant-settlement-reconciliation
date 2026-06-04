@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: fct_merchant_settlement_events
+  - name: fct_mt_settlement_events
     description: >
       Canonical event-level merchant settlement subledger fact. Grain is one row per
       accounting-relevant settlement event.
@@ -49,7 +49,7 @@ models:
         tests:
           - not_null
 
-  - name: audit_merchant_payable_tieout
+  - name: fct_mt_merchant_payable_tieout
     description: >
       Daily Merchant Payable reconciliation between canonical signed settlement events
       and NetSuite GL account 2100. Grain is one row per posting_date, legal_entity,

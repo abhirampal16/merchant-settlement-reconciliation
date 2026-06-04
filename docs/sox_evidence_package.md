@@ -10,7 +10,7 @@ Daily Merchant Payable reconciliation: finalized settlement activity must tie to
 - Escalation: Finance Ops investigates; Accounting owns certification
 
 ## Artifact
-Per run, produce `audit_merchant_payable_tieout` rows with:
+Per run, produce `fct_mt_merchant_payable_tieout` rows with:
 
 `posting_date`, `legal_entity`, `currency`, `settlement_net`, `gl_net`, `variance`, `variance_status`, `reconciliation_status`, `needs_investigation`, `investigation_priority`, `deterministic_root_cause_hint`, `evidence_hash`, `dbt_loaded_at`, `dbt_invocation_id`, `certification_status`.
 

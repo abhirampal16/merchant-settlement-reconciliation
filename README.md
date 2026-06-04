@@ -31,7 +31,7 @@ dbt build --no-version-check --profiles-dir .
 dbt show --no-version-check --profiles-dir . --limit 100 --inline \
   "select posting_date, legal_entity, currency, settlement_net, gl_net, variance,
    reconciliation_status, investigation_priority, evidence_hash
-   from main_subledger.audit_merchant_payable_tieout
+   from main_subledger.fct_mt_merchant_payable_tieout
    order by posting_date, legal_entity, currency"
 ```
 
@@ -48,13 +48,13 @@ Expected: `PASS=112 WARN=0 ERROR=0 SKIP=0 TOTAL=112`
 │   │   └── staging.yml                   # Source definitions, tests, docs
 │   │
 │   ├── intermediate/                     # Business logic & enrichment
-│   │   ├── int_settlement_events_signed.sql   # Sign logic, FINAL filter, legal entity join
-│   │   ├── int_gl_merchant_payable_entries.sql # Account 2100 filter, GL normalization
-│   │   └── int_merchant_legal_entity_history.sql  # SCD2 shape (placeholder)
+│   │   ├── int_mt_settlement_events_signed.sql   # Sign logic, FINAL filter, legal entity join
+│   │   ├── int_ns_merchant_payable_entries.sql    # Account 2100 filter, GL normalization
+│   │   └── int_crm_merchant_legal_entity_history.sql  # SCD2 shape (placeholder)
 │   │
 │   └── subledger/                        # Certified reconciliation output
-│       ├── fct_merchant_settlement_events.sql  # One row per settlement event (incremental merge)
-│       ├── audit_merchant_payable_tieout.sql   # Tie-out at (posting_date, legal_entity, currency)
+│       ├── fct_mt_settlement_events.sql         # One row per settlement event (incremental merge)
+│       ├── fct_mt_merchant_payable_tieout.sql  # Tie-out at (posting_date, legal_entity, currency)
 │       └── subledger.yml                 # Tests, docs, meta
 │
 ├── macros/
@@ -92,8 +92,8 @@ Seeds (synthetic source data)
   → Staging        Standardize types, deduplicate by primary key
   → Intermediate   Apply sign logic, filter account 2100, resolve legal entity
   → Subledger
-      → fct_merchant_settlement_events     Event-level fact (incremental merge)
-      → audit_merchant_payable_tieout      Grain-level reconciliation (full outer join)
+      → fct_mt_settlement_events             Event-level fact (incremental merge)
+      → fct_mt_merchant_payable_tieout     Grain-level reconciliation (full outer join)
 ```
 
 ## Reconciliation Output

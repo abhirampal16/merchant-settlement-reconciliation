@@ -11,7 +11,7 @@
     - Merge on tieout_key (deterministic hash of posting_date|legal_entity|currency)
     - Cluster on reconciliation grain for query pruning
     - 16-day lookback on accounting_date covers 14-day late-arriving source window
-    - Reads from fct_merchant_settlement_events which is itself incremental,
+    - Reads from fct_mt_settlement_events which is itself incremental,
       so this only reprocesses the slice of data that actually changed upstream
 */
 
@@ -19,7 +19,7 @@
 with settlement_events as (
 
     select *
-    from {{ ref('fct_merchant_settlement_events') }}
+    from {{ ref('fct_mt_settlement_events') }}
 
     {% if is_incremental() %}
     where accounting_date >= dateadd(day, -16, current_date)
@@ -30,7 +30,7 @@ with settlement_events as (
 gl_entries as (
 
     select *
-    from {{ ref('int_gl_merchant_payable_entries') }}
+    from {{ ref('int_ns_merchant_payable_entries') }}
 
     {% if is_incremental() %}
     where posting_date >= dateadd(day, -16, current_date)
