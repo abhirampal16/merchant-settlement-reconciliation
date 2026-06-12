@@ -49,7 +49,7 @@ models:
         tests:
           - not_null
 
-  - name: fct_mt_merchant_payable_tieout
+  - name: audit_merchant_payable_tieout
     description: >
       Daily Merchant Payable reconciliation between canonical signed settlement events
       and NetSuite GL account 2100. Grain is one row per posting_date, legal_entity,
@@ -71,6 +71,14 @@ models:
             - legal_entity
             - currency
       - valid_reconciliation_status
+      - no_material_variance:
+          threshold: 1000
+          config:
+            severity: warn
+      - exception_rate_anomaly:
+          max_exception_pct: 50
+          config:
+            severity: warn
     columns:
       - name: tieout_key
         description: Deterministic key for posting_date, legal_entity, and currency.
@@ -168,15 +176,15 @@ models:
         tests:
           - not_null
       - name: evidence_hash
-        description: Deterministic hash of reconciliation business values. Excludes dbt_invocation_id and dbt_loaded_at so unchanged business results produce the same hash across reruns.
+        description: Deterministic hash of reconciliation business values. Excludes runtime fields so unchanged business results produce the same hash across reruns.
         tests:
           - not_null
-      - name: dbt_loaded_at
-        description: Deterministic source watermark for the reconciliation row, derived from the latest source activity included in the tie-out grain.
+      - name: latest_source_activity_at
+        description: Latest source timestamp across both settlement and GL sides for this tie-out row.
         tests:
           - not_null
-      - name: dbt_invocation_id
-        description: Deterministic tie-out source fingerprint retained in the legacy invocation lineage field so unchanged reconciliation rows remain stable across reruns.
+      - name: tieout_fingerprint
+        description: Deterministic hash of the tie-out source composition (dates, counts) for change detection across reruns.
         tests:
           - not_null
       - name: certification_status

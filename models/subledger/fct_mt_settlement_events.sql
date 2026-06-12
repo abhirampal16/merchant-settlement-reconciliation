@@ -10,10 +10,13 @@
     Incremental strategy:
     - Merge on settlement_event_key (deterministic hash of event_id)
     - Cluster on accounting_date for downstream tieout partition pruning
-    - 16-day lookback on source_updated_at captures late-arriving events
-      and CDC replays without rescanning the full history
-    - source_updated_at is the arrival watermark (when we learned about
-      the event), not accounting_date (when it economically occurred)
+    - 2-day lookback from the high watermark handles out-of-order CDC
+      delivery (events arriving with source_updated_at slightly before
+      the max already in the table)
+    - Merge upserts by settlement_event_key so corrections and re-scanned
+      rows update in place without double-counting
+    - The 16-day late-arriving reprocessing window lives in the tieout
+      model, which re-aggregates posting dates affected by late arrivals
 */
 
 -- Import CTEs
@@ -24,7 +27,7 @@ with settlement_events_signed as (
 
     {% if is_incremental() %}
     where source_updated_at >= (
-        select dateadd(day, -16, max(source_updated_at))
+        select date_add(max(source_updated_at), interval '-2' day)
         from {{ this }}
     )
     {% endif %}
@@ -58,8 +61,7 @@ canonical_settlement_events as (
         -- Source and audit lineage
         source_updated_at,
         source_relation,
-        dbt_loaded_at,
-        dbt_invocation_id,
+        source_record_fingerprint,
 
         {{ generate_evidence_hash([
             'event_id',

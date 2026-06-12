@@ -28,7 +28,6 @@ standardized as (
         -- Source lineage
         cast(updated_at as timestamp) as updated_at_utc,
         cast(updated_at as timestamp) as updated_at,
-        cast(updated_at as timestamp) as dbt_loaded_at,
         'UTC' as source_timezone,
         'crm.merchants' as source_relation
 
@@ -47,7 +46,7 @@ with_deterministic_lineage as (
             'country',
             'onboarded_at_utc',
             'updated_at_utc'
-        ]) }} as dbt_invocation_id
+        ]) }} as source_record_fingerprint
     from standardized
 
 ),

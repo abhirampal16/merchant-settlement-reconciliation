@@ -30,7 +30,6 @@ standardized as (
         -- Source lineage
         cast(created_at as timestamp) as created_at_utc,
         cast(created_at as timestamp) as created_at,
-        cast(created_at as timestamp) as dbt_loaded_at,
         'UTC' as source_timezone,
         'netsuite.journal_entries' as source_relation
 
@@ -52,7 +51,7 @@ with_deterministic_lineage as (
             'currency',
             'memo',
             'created_at_utc'
-        ]) }} as dbt_invocation_id
+        ]) }} as source_record_fingerprint
     from standardized
 
 ),

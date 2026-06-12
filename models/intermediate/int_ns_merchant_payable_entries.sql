@@ -32,8 +32,7 @@ merchant_payable_entries as (
 
         -- Source lineage
         created_at,
-        dbt_loaded_at,
-        dbt_invocation_id,
+        source_record_fingerprint,
         source_relation
 
     from journal_entries

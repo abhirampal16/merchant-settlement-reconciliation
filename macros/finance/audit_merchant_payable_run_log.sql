@@ -24,7 +24,7 @@
     {% set ns = namespace(audit_model_ran=false, audit_status='SKIPPED') %}
 
     {% for result in results %}
-        {% if result.node is defined and result.node.name == 'fct_mt_merchant_payable_tieout' %}
+        {% if result.node is defined and result.node.name == 'audit_merchant_payable_tieout' %}
             {% set ns.audit_status = result.status | upper %}
             {% if result.status == 'success' %}
                 {% set ns.audit_model_ran = true %}
@@ -53,14 +53,14 @@
             created_at_utc
         )
         select
-            sha256('{{ invocation_id }}|fct_mt_merchant_payable_tieout') as run_log_id,
+            sha256('{{ invocation_id }}|audit_merchant_payable_tieout') as run_log_id,
             '{{ invocation_id }}' as dbt_invocation_id,
             cast('{{ run_started_at.strftime("%Y-%m-%d %H:%M:%S") }}' as timestamp) as run_started_at_utc,
             current_timestamp as run_completed_at_utc,
             '{{ target.name }}' as target_name,
             '{{ target.schema }}' as target_schema,
-            'fct_mt_merchant_payable_tieout' as model_name,
-            '{{ target.schema }}_subledger.fct_mt_merchant_payable_tieout' as model_relation,
+            'audit_merchant_payable_tieout' as model_name,
+            '{{ target.schema }}_subledger.audit_merchant_payable_tieout' as model_relation,
             row_count,
             matched_count,
             exception_count,
@@ -85,16 +85,16 @@
                             || '|'
                             || evidence_hash
                             || '|'
-                            || cast(dbt_loaded_at as varchar)
+                            || cast(latest_source_activity_at as varchar)
                             || '|'
-                            || dbt_invocation_id,
+                            || tieout_fingerprint,
                             '||'
                             order by posting_date, legal_entity, currency
                         ),
                         ''
                     )
                 ) as output_fingerprint
-            from {{ target.schema }}_subledger.fct_mt_merchant_payable_tieout
+            from {{ target.schema }}_subledger.audit_merchant_payable_tieout
         ) as run_summary
     {% else %}
         select 1 as audit_merchant_payable_run_log_skipped

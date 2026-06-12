@@ -34,7 +34,6 @@ standardized as (
         -- Source lineage
         cast(source_updated_at as timestamp) as source_updated_at_utc,
         cast(source_updated_at as timestamp) as source_updated_at,
-        cast(source_updated_at as timestamp) as dbt_loaded_at,
         'UTC' as source_timezone,
         'payments_db.settlement_events' as source_relation
 
@@ -58,7 +57,7 @@ with_deterministic_lineage as (
             'currency',
             'status',
             'source_updated_at_utc'
-        ]) }} as dbt_invocation_id
+        ]) }} as source_record_fingerprint
     from standardized
 
 ),

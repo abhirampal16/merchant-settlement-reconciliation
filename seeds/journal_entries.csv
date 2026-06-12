@@ -6,3 +6,14 @@ je_004,2026-05-02,2100,FinCo US,0.00,300.00,USD,Merchant payable settlement batc
 je_005,2026-05-02,2100,FinCo Canada,0.00,750.00,CAD,Merchant payable settlement batch - CA CAD with variance,2026-05-02 18:05:00
 je_006,2026-05-02,2100,FinCo UK,0.00,150.00,GBP,GL-only merchant payable posting for unmatched investigation,2026-05-02 18:10:00
 je_007,2026-05-01,4000,FinCo US,0.00,999.00,USD,Non-payable revenue account should be excluded,2026-05-01 18:15:00
+je_008,2026-04-30,2100,FinCo Canada,0.00,175.00,CAD,GL-only prior period merchant payable posting,2026-04-30 18:00:00
+je_009,2026-05-03,2100,FinCo US,0.00,750.00,USD,Merchant payable settlement batch - US USD full reversal plus new,2026-05-03 18:00:00
+je_010,2026-05-03,2100,FinCo EU,0.00,900.00,EUR,Merchant payable settlement batch - EU EUR with variance,2026-05-03 18:05:00
+je_011,2026-05-03,2100,FinCo Canada,50.00,0.00,CAD,Merchant payable adjustment debit - CA CAD negative adjustment,2026-05-03 18:10:00
+je_012,2026-05-03,2100,FinCo UK,0.00,1000.00,GBP,Merchant payable settlement batch - UK GBP multi-merchant,2026-05-03 18:15:00
+je_013,2026-05-15,2100,FinCo US,0.00,300.00,USD,Merchant payable settlement batch - US USD with pending excluded,2026-05-15 18:00:00
+je_014,2026-05-20,2100,FinCo US,0.00,480.00,USD,Merchant payable settlement batch - US USD CDC dedup proof,2026-05-20 18:00:00
+je_015,2026-05-31,2100,FinCo EU,0.00,3000.00,EUR,Merchant payable settlement batch - EU EUR month-end with variance,2026-05-31 18:00:00
+je_016,2026-05-31,2100,FinCo UK,0.00,800.00,GBP,Merchant payable settlement batch - UK GBP month-end,2026-05-31 18:05:00
+je_017,2026-05-31,2100,FinCo US,0.00,500.00,USD,GL-only month-end accrual with no settlement activity,2026-05-31 18:10:00
+je_018,2026-05-31,5000,FinCo US,0.00,1500.00,USD,Non-payable expense account should be excluded,2026-05-31 18:15:00

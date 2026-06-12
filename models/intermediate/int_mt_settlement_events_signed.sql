@@ -47,8 +47,7 @@ settlement_events_with_legal_entity as (
         final_settlement_events.currency,
         final_settlement_events.status,
         final_settlement_events.source_updated_at,
-        final_settlement_events.dbt_loaded_at,
-        final_settlement_events.dbt_invocation_id,
+        final_settlement_events.source_record_fingerprint,
         final_settlement_events.source_relation
 
     from final_settlement_events

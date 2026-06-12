@@ -22,7 +22,7 @@ with settlement_events as (
     from {{ ref('fct_mt_settlement_events') }}
 
     {% if is_incremental() %}
-    where accounting_date >= dateadd(day, -16, current_date)
+    where accounting_date >= date_add(current_date, interval '-16' day)
     {% endif %}
 
 ),
@@ -33,7 +33,7 @@ gl_entries as (
     from {{ ref('int_ns_merchant_payable_entries') }}
 
     {% if is_incremental() %}
-    where posting_date >= dateadd(day, -16, current_date)
+    where posting_date >= date_add(current_date, interval '-16' day)
     {% endif %}
 
 ),
@@ -239,7 +239,7 @@ with_audit_fields as (
             'deterministic_root_cause_hint'
         ]) }} as evidence_hash,
 
-        latest_source_activity_at as dbt_loaded_at,
+        latest_source_activity_at,
         {{ generate_evidence_hash([
             'posting_date',
             'legal_entity',
@@ -248,7 +248,7 @@ with_audit_fields as (
             'latest_gl_created_at',
             'settlement_event_count',
             'gl_entry_count'
-        ]) }} as dbt_invocation_id,
+        ]) }} as tieout_fingerprint,
         'PROVISIONAL' as certification_status
 
     from stable_audit_lineage

@@ -26,10 +26,9 @@ sources:
             period: day
         columns:
           - name: event_id
-            description: Stable source identifier for the settlement event.
+            description: Stable source identifier for the settlement event. Not unique in raw source due to CDC — uniqueness enforced after staging dedup.
             tests:
               - not_null
-              - unique
           - name: settlement_id
             description: Source settlement identifier grouping related events.
             tests:
@@ -197,10 +196,8 @@ models:
         description: Explicit UTC source update timestamp used for CDC deduplication, late-arriving handling, and stable lineage.
         tests:
           - not_null
-      - name: dbt_loaded_at
-        description: Deterministic UTC source watermark timestamp for the staged event. Uses source_updated_at_utc so reruns over unchanged source data are idempotent.
-      - name: dbt_invocation_id
-        description: Deterministic source-row fingerprint retained in the legacy invocation lineage field so unchanged source rows remain stable across reruns.
+      - name: source_record_fingerprint
+        description: Deterministic SHA-256 hash of all business columns for the source row. Used for change detection and audit lineage across reruns.
       - name: source_timezone
         description: Source timestamp interpretation used by the staging layer.
         tests:

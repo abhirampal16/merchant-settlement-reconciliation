@@ -6,11 +6,11 @@ select
             || '|'
             || evidence_hash
             || '|'
-            || cast(dbt_loaded_at as varchar)
+            || cast(latest_source_activity_at as varchar)
             || '|'
-            || dbt_invocation_id,
+            || tieout_fingerprint,
             '||'
             order by posting_date, legal_entity, currency
         )
     ) as output_fingerprint
-from {{ ref('fct_mt_merchant_payable_tieout') }}
+from {{ ref('audit_merchant_payable_tieout') }}

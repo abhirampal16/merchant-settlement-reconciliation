@@ -41,8 +41,7 @@ legal_entity_history as (
 
         -- Source lineage
         updated_at,
-        dbt_loaded_at,
-        dbt_invocation_id,
+        source_record_fingerprint,
         source_relation
 
     from merchants
